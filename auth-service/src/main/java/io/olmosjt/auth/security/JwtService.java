@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.olmosjt.auth.domain.entity.User;
+import io.olmosjt.common.entity.identity.UserEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,12 @@ public class JwtService {
 
     // --- TOKEN GENERATION ---
 
-    public String generateAccessToken(User user) {
-        return buildToken(Map.of("role", user.getRole().name()), user.getEmail(), ACCESS_TOKEN_VALIDITY);
+    public String generateAccessToken(UserEntity userEntity) {
+        return buildToken(Map.of("role", userEntity.getRole().name()), userEntity.getEmail(), ACCESS_TOKEN_VALIDITY);
     }
 
-    public String generateRefreshToken(User user) {
-        return buildToken(Map.of(), user.getEmail(), REFRESH_TOKEN_VALIDITY);
+    public String generateRefreshToken(UserEntity userEntity) {
+        return buildToken(Map.of(), userEntity.getEmail(), REFRESH_TOKEN_VALIDITY);
     }
 
     private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {

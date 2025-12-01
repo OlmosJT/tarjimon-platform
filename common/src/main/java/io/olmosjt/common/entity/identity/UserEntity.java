@@ -1,6 +1,7 @@
-package io.olmosjt.auth.domain.entity;
+package io.olmosjt.common.entity.identity;
 
-import io.olmosjt.auth.domain.UserRoleType;
+
+import io.olmosjt.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Getter @Setter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -30,7 +31,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "user_role_type")
-    private UserRoleType role;
+    private UserRole role;
 
     @Column(name = "is_active")
     @Builder.Default

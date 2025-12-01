@@ -8,7 +8,7 @@ import io.olmosjt.auth.domain.UserRoleType;
 import io.olmosjt.auth.domain.dto.Authentication;
 import io.olmosjt.auth.domain.dto.LinkGoogleRequest;
 import io.olmosjt.auth.domain.dto.RegisterRequest;
-import io.olmosjt.auth.domain.entity.User;
+import io.olmosjt.common.entity.identity.UserEntity;
 import io.olmosjt.auth.domain.repository.UserRepository;
 import io.olmosjt.auth.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class AuthService {
             throw new RuntimeException("Email already in use");
         }
 
-        var user = User.builder()
+        var user = UserEntity.builder()
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(UserRoleType.READER)

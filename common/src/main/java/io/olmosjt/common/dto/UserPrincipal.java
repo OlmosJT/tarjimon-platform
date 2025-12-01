@@ -1,0 +1,20 @@
+package io.olmosjt.common.dto;
+
+import io.olmosjt.common.enums.UserRole;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserPrincipal {
+    private UUID id;
+    private String email;
+    private UserRole role;
+    private boolean isActive;
+}

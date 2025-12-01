@@ -1,7 +1,7 @@
 package io.olmosjt.auth.config;
 
 import io.olmosjt.auth.domain.UserRoleType;
-import io.olmosjt.auth.domain.entity.User;
+import io.olmosjt.common.entity.identity.UserEntity;
 import io.olmosjt.auth.domain.repository.UserRepository;
 import io.olmosjt.auth.security.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,29 +29,29 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String googleSub = oAuth2User.getAttribute("sub"); // Google's unique ID
 
         // 1. Find or Create User
-        User user = userRepository.findByEmail(email)
-                .map(existingUser -> {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .map(existingUserEntity -> {
                     // Update Google Sub if missing (Linking account logic for existing email users)
-                    if (existingUser.getGoogleSub() == null) {
-                        existingUser.setGoogleSub(googleSub);
-                        return userRepository.save(existingUser);
+                    if (existingUserEntity.getGoogleSub() == null) {
+                        existingUserEntity.setGoogleSub(googleSub);
+                        return userRepository.save(existingUserEntity);
                     }
-                    return existingUser;
+                    return existingUserEntity;
                 })
                 .orElseGet(() -> {
                     // Register new user
-                    User newUser = User.builder()
+                    UserEntity newUserEntity = UserEntity.builder()
                             .email(email)
                             .googleSub(googleSub)
                             .role(UserRoleType.READER)
                             .isActive(true)
                             .build();
-                    return userRepository.save(newUser);
+                    return userRepository.save(newUserEntity);
                 });
 
         // 2. Generate Tokens
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String accessToken = jwtService.generateAccessToken(userEntity);
+        String refreshToken = jwtService.generateRefreshToken(userEntity);
 
         // 3. Redirect to Frontend with tokens (or use a cookie approach)
         // Adjust this URL to your Frontend (tarjimon.io)

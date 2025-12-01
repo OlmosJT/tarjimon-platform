@@ -3,8 +3,6 @@ package io.olmosjt.auth.controller;
 import io.olmosjt.auth.domain.dto.Authentication;
 import io.olmosjt.auth.domain.dto.LinkGoogleRequest;
 import io.olmosjt.auth.domain.dto.RegisterRequest;
-import io.olmosjt.auth.domain.entity.User;
-import io.olmosjt.auth.domain.repository.UserRepository;
 import io.olmosjt.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
