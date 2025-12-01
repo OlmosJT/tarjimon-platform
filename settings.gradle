@@ -1,0 +1,11 @@
+rootProject.name = 'tarjimon-platform'
+
+include 'common'
+include 'auth-service'
+include 'content-service'
+//include 'reader-api'
+//include 'translator-api'
+//include 'search-service'
+//include 'google-drive-service'
+//include 'notification-service'
+//include 'gateway'
