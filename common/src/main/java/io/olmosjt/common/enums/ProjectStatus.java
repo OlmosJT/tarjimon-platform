@@ -1,9 +1,9 @@
 package io.olmosjt.common.enums;
 
 public enum ProjectStatus {
-    DRAFT,
+    CREATED,
     ONGOING,
     COMPLETED,
+    PUBLISHED,
     DROPPED;
-
 }
