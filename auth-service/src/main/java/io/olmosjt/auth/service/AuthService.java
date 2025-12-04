@@ -4,18 +4,20 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import io.olmosjt.auth.domain.UserRoleType;
 import io.olmosjt.auth.domain.dto.Authentication;
 import io.olmosjt.auth.domain.dto.LinkGoogleRequest;
 import io.olmosjt.auth.domain.dto.RegisterRequest;
 import io.olmosjt.common.entity.identity.UserEntity;
 import io.olmosjt.auth.domain.repository.UserRepository;
 import io.olmosjt.auth.security.JwtService;
+import io.olmosjt.common.enums.UserRole;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,13 +41,13 @@ public class AuthService {
 
     public Authentication.Response register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already in use");
+            throw new RuntimeException("Email is already in use.");
         }
 
         var user = UserEntity.builder()
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role(UserRoleType.READER)
+                .role(UserRole.READER)
                 .isActive(true)
                 .build();
 
@@ -54,7 +56,7 @@ public class AuthService {
         var jwtToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        return new Authentication.Response(jwtToken, refreshToken, user.getRole());
+        return buildAuthResponse(user, jwtToken, refreshToken);
     }
 
     public Authentication.Response authenticate(Authentication.Request request) {
@@ -66,12 +68,12 @@ public class AuthService {
         );
 
         var user = userRepository.findByEmail(request.email())
-                .orElseThrow();
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         var jwtToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        return new Authentication.Response(jwtToken, refreshToken, user.getRole());
+        return buildAuthResponse(user, jwtToken, refreshToken);
     }
 
 
@@ -79,21 +81,32 @@ public class AuthService {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("Invalid Token");
         }
-        String refreshToken = authHeader.substring(7);
-        String userEmail = jwtService.extractUsername(refreshToken);
+
+        // Extract the OLD refresh token
+        String oldRefreshToken = authHeader.substring(7);
+        String userEmail = jwtService.extractUsername(oldRefreshToken);
 
         if (userEmail != null) {
-            var user = userRepository.findByEmail(userEmail).orElseThrow();
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("User not found")); // Changed exception for simplicity
 
-            var userDetails = org.springframework.security.core.userdetails.User.builder()
+            // Validate the user
+            var userDetails = User.builder()
                     .username(user.getEmail())
                     .password(user.getPassword() != null ? user.getPassword() : "")
                     .roles(user.getRole().name())
                     .build();
 
-            if (jwtService.isTokenValid(refreshToken, userDetails)) {
-                var accessToken = jwtService.generateAccessToken(user);
-                return new Authentication.Response(accessToken, refreshToken, user.getRole());
+            if (jwtService.isTokenValid(oldRefreshToken, userDetails)) {
+                // 1. Generate NEW Access Token
+                var newAccessToken = jwtService.generateAccessToken(user);
+
+                // 2. Generate NEW Refresh Token (Rotation)
+                // This ensures the user gets a fresh 7-day window, and the token string changes.
+                var newRefreshToken = jwtService.generateRefreshToken(user);
+
+                // 3. Return BOTH new tokens
+                return buildAuthResponse(user, newAccessToken, newRefreshToken);
             }
         }
         throw new RuntimeException("Token expired or invalid");
@@ -112,6 +125,22 @@ public class AuthService {
 
         user.setGoogleSub(googleSub);
         userRepository.save(user);
+    }
+
+    // --- Helper Methods ---
+    private Authentication.Response buildAuthResponse(UserEntity user, String jwtToken, String refreshToken) {
+        return new Authentication.Response(
+                jwtToken,
+                refreshToken,
+                new Authentication.UserInfo(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getAvatarUrl(),
+                        user.getRole()
+                )
+        );
     }
 
     /**
@@ -136,5 +165,10 @@ public class AuthService {
             log.error(e.getMessage());
             throw new RuntimeException("Failed to verify Google ID Token", e);
         }
+    }
+
+    public UserEntity getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

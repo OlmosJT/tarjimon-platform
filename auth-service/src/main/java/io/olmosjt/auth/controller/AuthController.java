@@ -39,8 +39,17 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<String> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok("Hello " + userDetails.getUsername());
+    public ResponseEntity<Authentication.UserInfo> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        var user = authService.getUserByEmail(userDetails.getUsername());
+
+        return ResponseEntity.ok(new Authentication.UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getAvatarUrl(),
+                user.getRole()
+        ));
     }
 
 

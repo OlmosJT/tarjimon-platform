@@ -33,20 +33,23 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/login/oauth2/**", "/oauth2/**").permitAll()
+                        // UPDATE 1: Allow the new path structures
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/oauth2/**",       // New Authorization endpoint
+                                "/api/v1/login/oauth2/**"  // New Redirect endpoint
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                        // We don't need a custom login page, frontend handles the "Sign in with Google" button link
-                        // But if you hit /login/oauth2/code/google directly, Spring handles it.
                         .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorize")
+                                .baseUri("/api/v1/oauth2/authorize")
                         )
                         .redirectionEndpoint(redirection -> redirection
-                                .baseUri("/login/oauth2/code/*")
+                                .baseUri("/api/v1/login/oauth2/code/*")
                         )
                         .successHandler(oAuth2LoginSuccessHandler)
                 );

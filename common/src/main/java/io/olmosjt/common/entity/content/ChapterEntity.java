@@ -44,7 +44,7 @@ public class ChapterEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "chapter_status_enum")
     @Builder.Default
-    private ChapterStatus status = ChapterStatus.DRAFT;
+    private ChapterStatus status = ChapterStatus.CREATED;
 
     @Column(name = "published_at")
     private Instant publishedAt;
