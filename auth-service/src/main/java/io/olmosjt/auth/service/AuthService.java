@@ -9,7 +9,7 @@ import io.olmosjt.auth.domain.dto.LinkGoogleRequest;
 import io.olmosjt.auth.domain.dto.RegisterRequest;
 import io.olmosjt.common.entity.identity.UserEntity;
 import io.olmosjt.auth.domain.repository.UserRepository;
-import io.olmosjt.auth.security.JwtService;
+import io.olmosjt.common.security.JwtService;
 import io.olmosjt.common.enums.UserRole;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

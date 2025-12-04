@@ -1,4 +1,4 @@
-package io.olmosjt.auth.security;
+package io.olmosjt.common.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;

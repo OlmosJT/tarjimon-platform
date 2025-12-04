@@ -1,5 +1,6 @@
 package io.olmosjt.auth.security;
 
+import io.olmosjt.common.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
